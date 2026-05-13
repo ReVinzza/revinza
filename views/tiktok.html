@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>TikTok Downloader Cyber</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        darker: '#020617',
+                        neon: '#00f0ff'
+                    },
+                    fontFamily: { cyber: ['Orbitron', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { transition: background 0.5s ease, color 0.5s ease; margin: 0; padding: 0; }
+        .theme-dark { background: #020617; color: white; }
+        .theme-dark .box-container { background: #0f172a; border: 1px solid #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.2); }
+        .theme-dark .text-glow { text-shadow: 0 0 10px #00f0ff; color: #00f0ff; }
+        .theme-dark .input-field { background: #000; border: 1px solid #00f0ff; color: white; }
+        .theme-dark .btn-primary { background: #00f0ff; color: black; }
+
+        .theme-light { background: #f1f5f9; color: #1e293b; }
+        .theme-light .box-container { background: white; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .theme-light .btn-primary { background: #0f172a; color: white; }
+        .theme-rainy { background: #1e293b; color: #cbd5e1; }
+        .theme-rainy .box-container { background: rgba(255,255,255,0.05); border: 1px solid #475569; backdrop-filter: blur(10px); }
+        .theme-rainy .btn-primary { background: #0ea5e9; color: white; }
+        .theme-horror { background: #000; color: #ea580c; }
+        .theme-horror .box-container { background: #111; border: 1px solid #ea580c; }
+        .theme-horror .btn-primary { background: #ea580c; color: black; }
+
+        .header-nav { display: flex; justify-content: flex-end; padding: 20px; position: fixed; top: 0; width: 100%; z-index: 50; }
+        .main-switcher { width: 42px; height: 42px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .box-container { transition: 0.5s ease; border-radius: 24px; padding: 24px; width: 100%; max-width: 450px; }
+        .input-field { width: 100%; padding: 12px 16px; border-radius: 12px; outline: none; margin-bottom: 12px; }
+        .btn-primary { width: 100%; padding: 12px; border-radius: 12px; font-weight: 900; transition: 0.3s; text-transform: uppercase; cursor: pointer; }
+        video, audio { width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid currentColor; }
+
+        *::-webkit-media-controls-current-time-display,
+        *::-webkit-media-controls-time-remaining-display { color: #fff !important; font-weight: bold; }
+        .theme-dark *::-webkit-media-controls-panel { background-color: rgba(15, 23, 42, 0.9); }
+        .theme-dark *::-webkit-media-controls-play-button, .theme-dark *::-webkit-media-controls-timeline { filter: invert(1) hue-rotate(180deg) brightness(1.5); }
+    </style>
+</head>
+
+<body class="theme-dark font-cyber" id="bodyTag">
+
+    <div class="header-nav">
+        <div class="main-switcher" onclick="toggleTheme()" id="btnSwitch">
+            <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-6 pt-24">
+        <div class="box-container">
+            <h1 class="text-xl font-black text-glow mb-6 flex items-center gap-2">
+                <i class="fa-brands fa-tiktok"></i> TIKTOK CYBER
+            </h1>
+
+            <input id="url" class="input-field" placeholder="Masukkan link TikTok...">
+
+            <button onclick="downloadTT()" class="btn-primary tracking-wider w-full">
+                SEARCH
+            </button>
+
+            <p id="loading" class="text-[10px] uppercase opacity-50 mt-4 text-center h-4"></p>
+
+            <div id="result" class="mt-5"></div>
+        </div>
+    </div>
+
+    <script> 
+        if ("Notification" in window) {
+            Notification.requestPermission();
+        }
+
+        const themes = [
+            { name: 'dark', icon: 'fa-moon', color: '#00f0ff' },
+            { name: 'light', icon: 'fa-sun', color: '#0f172a' },
+            { name: 'rainy', icon: 'fa-cloud-showers-heavy', color: '#0ea5e9' },
+            { name: 'horror', icon: 'fa-ghost', color: '#ea580c' }
+        ];
+
+        let currentIdx = 0;
+        function toggleTheme() {
+            currentIdx = (currentIdx + 1) % themes.length;
+            const t = themes[currentIdx];
+            document.getElementById('bodyTag').className = 'theme-' + t.name;
+            document.getElementById('themeIcon').className = 'fa-solid ' + t.icon;
+            document.getElementById('btnSwitch').style.color = t.color;
+        }
+        function notifyHP(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/2585/2585140.png' });
+            }
+            if (navigator.vibrate) {
+                navigator.vibrate(100); // Getar singkat
+            }
+        }
+
+        async function forceDownload(fileUrl, fileName) {
+            const loading = document.getElementById('loading');
+            loading.innerText = "SEDANG MENGUNDUH...";
+            notifyHP("TikTok Downloader", "Proses pengunduhan dimulai...");
+
+            try {
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error();
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                loading.innerText = "DOWNLOAD SELESAI!";
+                notifyHP("Download Sukses!", "File " + fileName + " tersimpan.");
+                
+                setTimeout(() => loading.innerText = "", 2000);
+            } catch (error) {
+                window.open(fileUrl, '_blank');
+                loading.innerText = "DIBUKA DI TAB BARU...";
+                notifyHP("TikTok Downloader", "Gagal otomatis, silakan simpan manual di tab baru.");
+            }
+        }
+
+        async function downloadTT() {
+            const url = document.getElementById('url').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            if (!url) return alert('Masukkan link!');
+
+            loading.innerText = "SISTEM SEDANG MEMPROSES...";
+            result.innerHTML = "";
+
+            try {
+                const res = await fetch('/api/tiktok?url=' + encodeURIComponent(url));
+                const data = await res.json();
+                loading.innerText = "";
+
+                if (!data.status) {
+                    result.innerHTML = "<p class='text-center text-red-500 font-bold'>❌ GAGAL DOWNLOAD</p>";
+                    return;
+                }
+
+                let html = "";
+                const unique = Date.now();
+
+                if (data.type === "video") {
+                    html += `
+                        <video controls class="shadow-lg mb-2"><source src="${data.video}" type="video/mp4"></video>
+                        <button onclick="forceDownload('${data.video}', 'RevinzaVd_${unique}.mp4')" class="btn-primary w-full py-3 text-xs mb-2">
+                            ⬇ LANGSUNG DOWNLOAD VIDEO
+                        </button>
+                        <button onclick="forceDownload('${data.music}', 'RevinzaMusic_${unique}.mp3')" class="w-full border border-current text-center p-2 rounded-xl text-[10px] font-bold uppercase hover:bg-white hover:text-black transition">
+                            🎵 Download Audio
+                        </button>
+                    `;
+                } else if (data.type === "image") {
+                    data.images.forEach((img, idx) => {
+                        html += `<img src="${img}" class="w-full rounded-xl border border-current mb-2 shadow-md">`;
+                        html += `<button onclick="forceDownload('${img}', 'RevinzaImg_${idx}_${unique}.jpg')" class="w-full mb-4 border border-current py-2 text-[10px] uppercase rounded-lg">Simpan Foto ${idx + 1}</button>`;
+                    });
+                    html += `<button onclick="forceDownload('${data.music}', 'RevinzaMusic_${unique}.mp3')" class="btn-primary w-full py-3 text-xs">🎵 Download Music</button>`;
+                }
+
+                result.innerHTML = html;
+                notifyHP("TikTok Downloader", "Link berhasil ditemukan!");
+
+            } catch (e) {
+                loading.innerText = "";
+                result.innerHTML = "❌ Error: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

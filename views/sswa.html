@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>IQC Whatsapp</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        darker: '#020617',
+                        neon: '#00f0ff',
+                    },
+                    fontFamily: { cyber: ['Orbitron', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { transition: background 0.5s ease, color 0.5s ease; margin: 0; padding: 0; min-height: 100vh; }
+
+   
+        .theme-dark { background: #020617; color: white; }
+        .theme-dark .box-container { background: #0f172a; border: 1px solid #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.2); }
+        .theme-dark .text-glow { text-shadow: 0 0 10px #00f0ff; color: #00f0ff; }
+        .theme-dark .input-field { background: #000; border: 1px solid #00f0ff; color: white; }
+        .theme-dark .btn-primary { background: #00f0ff; color: black; }
+
+        .theme-light { background: #f1f5f9; color: #1e293b; }
+        .theme-light .box-container { background: white; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .theme-light .text-glow { color: #0f172a; }
+        .theme-light .input-field { background: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b; }
+        .theme-light .btn-primary { background: #0f172a; color: white; }
+
+        .theme-rainy { background: #1e293b; color: #cbd5e1; }
+        .theme-rainy .box-container { background: rgba(255,255,255,0.05); border: 1px solid #475569; backdrop-filter: blur(10px); }
+        .theme-rainy .btn-primary { background: #0ea5e9; color: white; }
+
+        .theme-horror { background: #000; color: #ea580c; }
+        .theme-horror .box-container { background: #111; border: 1px solid #ea580c; }
+        .theme-horror .text-glow { color: #ff4500; text-shadow: 0 0 15px #7c2d12; }
+        .theme-horror .input-field { background: #050505; border: 1px solid #ea580c; color: #ff4500; }
+        .theme-horror .btn-primary { background: #ea580c; color: black; }
+
+        .header-nav { display: flex; justify-content: flex-end; padding: 20px; position: fixed; top: 0; width: 100%; z-index: 50; }
+        .main-switcher { width: 42px; height: 42px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .box-container { transition: 0.5s ease; border-radius: 24px; padding: 24px; width: 100%; max-width: 450px; }
+        .input-field { width: 100%; padding: 12px 16px; border-radius: 12px; outline: none; margin-bottom: 12px; }
+        .btn-primary { width: 100%; padding: 12px; border-radius: 12px; font-weight: 900; transition: 0.3s; text-transform: uppercase; cursor: pointer; }
+    </style>
+</head>
+
+<body class="theme-dark font-cyber" id="bodyTag">
+
+    <div class="header-nav">
+        <div class="main-switcher" onclick="toggleTheme()" id="btnSwitch" style="color: #00f0ff;">
+            <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-6 pt-24">
+        <div class="box-container">
+            <h1 class="text-xl font-black text-glow mb-6 flex items-center gap-2">
+                <i class="fa-brands fa-whatsapp"></i> IQC WhatsApp
+            </h1>
+
+            <input id="text" class="input-field" placeholder="Tulis chat WhatsApp...">
+
+            <button onclick="buat()" class="btn-primary w-full">
+                GENERATE IQC
+            </button>
+
+            <p id="loading" class="text-[10px] uppercase opacity-50 mt-4 text-center h-4"></p>
+
+            <div id="result" class="mt-5"></div>
+        </div>
+    </div>
+
+    <script>
+       
+        if ("Notification" in window) { Notification.requestPermission(); }
+
+        const themes = [
+            { name: 'dark', icon: 'fa-moon', color: '#00f0ff' },
+            { name: 'light', icon: 'fa-sun', color: '#0f172a' },
+            { name: 'rainy', icon: 'fa-cloud-showers-heavy', color: '#0ea5e9' },
+            { name: 'horror', icon: 'fa-ghost', color: '#ea580c' }
+        ];
+
+        let currentIdx = 0;
+        function toggleTheme() {
+            currentIdx = (currentIdx + 1) % themes.length;
+            const t = themes[currentIdx];
+            document.getElementById('bodyTag').className = 'theme-' + t.name;
+            document.getElementById('themeIcon').className = 'fa-solid ' + t.icon;
+            document.getElementById('btnSwitch').style.color = t.color;
+        }
+
+        function notifyHP(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png' });
+            }
+            if (navigator.vibrate) { navigator.vibrate(100); }
+        }
+
+        async function buat() {
+            const text = document.getElementById('text').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            if (!text) return alert('Masukin teks!');
+
+            loading.innerText = 'GENERATING SYSTEM...';
+            result.innerHTML = '';
+
+            try {
+                const res = await fetch('/api/sswa?text=' + encodeURIComponent(text));
+                
+                if (!res.ok) {
+                    loading.innerText = '';
+                    result.innerHTML = '<p class="text-center text-red-500">❌ Server Error</p>';
+                    return;
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const stamp = Date.now();
+
+                loading.innerText = 'GENERATE COMPLETE!';
+                notifyHP("WhatsApp SS", "Gambar berhasil dibuat!");
+
+                result.innerHTML = `
+                    <img src="${url}" class="w-full rounded-xl border border-current shadow-lg mt-3">
+                    <a href="${url}" download="SS_WA_Revinza_${stamp}.png" class="block mt-4 btn-primary text-center py-3 no-underline">
+                        ⬇ DOWNLOAD IMAGE
+                    </a>
+                `;
+            } catch (e) {
+                loading.innerText = '';
+                alert("Error: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

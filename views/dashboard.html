@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RevinzaDesigner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body { transition: background 0.6s ease, color 0.6s ease; font-family: 'Orbitron', sans-serif; min-height: 100vh; margin: 0; }
+        
+        .theme-dark { background: #020617; color: white; }
+        .theme-dark .card { background: #0f172a; border: 1px solid #22d3ee; }
+        .theme-dark .glow { text-shadow: 0 0 10px #00f0ff; color: #00f0ff; }
+        .theme-dark .gif-frame { border: 2px solid #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.5); }
+
+        .theme-light { background: #f8fafc; color: #1e293b; }
+        .theme-light .card { background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .theme-light .glow { color: #0f172a; }
+        .theme-light .gif-frame { border: 2px solid #cbd5e1; box-shadow: none; }
+
+        .theme-rainy { background: #1e293b; color: #cbd5e1; }
+        .theme-rainy .card { background: rgba(255,255,255,0.05); border: 1px solid #64748b; backdrop-filter: blur(4px); }
+        .theme-rainy .glow { color: #94a3b8; }
+        .theme-rainy .gif-frame { border: 2px solid #64748b; }
+
+        .theme-horror { background: #0a0a0a; color: #ea580c; }
+        .theme-horror .card { background: #171717; border: 1px solid #ea580c; }
+        .theme-horror .glow { color: #ff4500; text-shadow: 0 0 15px #7c2d12; }
+        .theme-horror .gif-frame { border: 2px solid #ea580c; box-shadow: 0 0 20px #7c2d12; }
+
+        .theme-switcher-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+        }
+
+        .main-switcher {
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .gif-frame {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.5s;
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 240, 255, 0.3);
+            position: absolute;
+            top: 0;
+            z-index: 5;
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        
+        .card { transition: all 0.3s ease; border-radius: 1rem; padding: 1.5rem; text-align: center; display: block; }
+        .card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="theme-dark" id="bodyTag">
+
+<div class="theme-switcher-container">
+    <div class="main-switcher" onclick="toggleTheme()" id="btnSwitch">
+        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+    </div>
+</div>
+
+<div class="p-8 pt-20">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-black glow mb-2">RevinzaDesigner</h1>
+        <p class="text-sm opacity-60">All Tools in One Place</p>
+    </div>
+
+    <div class="gif-frame">
+        <div class="scanline"></div>
+        <video autoplay loop muted playsinline class="w-full h-auto block">
+            <source src="https://files.catbox.moe/rjh92s.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+        <a href="/sswa" class="card">
+            <i class="fa-brands fa-whatsapp text-3xl text-green-500 mb-2"></i>
+            <p class="text-xs font-bold uppercase tracking-tighter">SS WhatsApp</p>
+        </a>
+        <a href="/musik" class="card">
+            <i class="fa-solid fa-music text-3xl text-pink-500 mb-2"></i>
+            <p class="text-xs font-bold uppercase tracking-tighter">YT Music</p>
+        </a>
+        <a href="/tiktok" class="card">
+            <i class="fa-brands fa-tiktok text-3xl mb-2"></i>
+            <p class="text-xs font-bold uppercase tracking-tighter">TikTok DL</p>
+        </a>
+        <a href="/igdl" class="card">
+            <i class="fa-brands fa-instagram text-3xl text-purple-500 mb-2"></i>
+            <p class="text-xs font-bold uppercase tracking-tighter">Instagram DL</p>
+        </a>
+    </div>
+</div>
+
+<script>
+    const themes = [
+        { name: 'dark', icon: 'fa-moon' },
+        { name: 'light', icon: 'fa-sun' },
+        { name: 'rainy', icon: 'fa-cloud-showers-heavy' },
+        { name: 'horror', icon: 'fa-ghost' }
+    ];
+
+    let currentIdx = 0;
+
+    function toggleTheme() {
+        currentIdx = (currentIdx + 1) % themes.length;
+        const theme = themes[currentIdx];
+
+        document.getElementById('bodyTag').className = 'theme-' + theme.name;
+
+        const icon = document.getElementById('themeIcon');
+        icon.className = `fa-solid ${theme.icon} text-lg`;
+        
+        const btn = document.getElementById('btnSwitch');
+        btn.style.transform = "scale(0.8)";
+        setTimeout(() => btn.style.transform = "scale(1)", 100);
+    }
+</script>
+
+</body>
+</html>

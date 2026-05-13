@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>RevinzaMusic</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        darker: '#020617',
+                        neon: '#00f0ff',
+                    },
+                    fontFamily: { cyber: ['Orbitron', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { transition: background 0.5s ease, color 0.5s ease; margin: 0; padding: 0; min-height: 100vh; }
+
+        .theme-dark { background: #020617; color: white; }
+        .theme-dark .box-container { background: #0f172a; border: 1px solid #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.2); }
+        .theme-dark .text-glow { text-shadow: 0 0 10px #00f0ff; color: #00f0ff; }
+        .theme-dark .input-field { background: #000; border: 1px solid #00f0ff; color: white; }
+        .theme-dark .btn-primary { background: #00f0ff; color: black; }
+
+        .theme-light { background: #f1f5f9; color: #1e293b; }
+        .theme-light .box-container { background: white; border: 1px solid #cbd5e1; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .theme-light .text-glow { color: #0f172a; text-shadow: none; }
+        .theme-light .input-field { background: #f8fafc; border: 1px solid #cbd5e1; color: #1e293b; }
+        .theme-light .btn-primary { background: #0f172a; color: white; }
+
+        .theme-rainy { background: #1e293b; color: #cbd5e1; }
+        .theme-rainy .box-container { background: rgba(255,255,255,0.05); border: 1px solid #475569; backdrop-filter: blur(10px); }
+        .theme-rainy .text-glow { color: #0ea5e9; text-shadow: 0 0 10px rgba(14,165,233,0.5); }
+        .theme-rainy .input-field { background: rgba(0,0,0,0.2); border: 1px solid #0ea5e9; color: white; }
+        .theme-rainy .btn-primary { background: #0ea5e9; color: white; }
+
+        .theme-horror { background: #000; color: #ea580c; }
+        .theme-horror .box-container { background: #111; border: 1px solid #ea580c; box-shadow: 0 0 20px rgba(234,88,12,0.2); }
+        .theme-horror .text-glow { color: #ff4500; text-shadow: 0 0 15px #7c2d12; }
+        .theme-horror .input-field { background: #050505; border: 1px solid #ea580c; color: #ff4500; }
+        .theme-horror .btn-primary { background: #ea580c; color: black; }
+        .theme-horror #loading, .theme-horror .duration-text { color: #ff4500 !important; opacity: 1 !important; font-weight: bold; }
+
+        .header-nav { display: flex; justify-content: flex-end; padding: 20px; position: fixed; top: 0; width: 100%; z-index: 50; }
+        .main-switcher { width: 42px; height: 42px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .box-container { transition: 0.5s ease; border-radius: 24px; padding: 24px; width: 100%; max-width: 450px; }
+        .input-field { width: 100%; padding: 12px 16px; border-radius: 12px; outline: none; margin-bottom: 12px; }
+        .btn-primary { width: 100%; padding: 12px; border-radius: 12px; font-weight: 900; transition: 0.3s; text-transform: uppercase; cursor: pointer; }
+        .btn-primary:active { transform: scale(0.95); }
+        .img-cover { width: 100%; border-radius: 18px; margin-bottom: 15px; border: 1px solid currentColor; }
+
+        
+        .loader { width: 20px; height: 20px; border: 3px solid currentColor; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+      
+        audio { width: 100%; margin-top: 15px; border-radius: 12px; height: 45px; }
+        
+        .theme-dark audio::-webkit-media-controls-panel { background-color: #0f172a; }
+        .theme-dark audio::-webkit-media-controls-play-button, 
+        .theme-dark audio::-webkit-media-controls-timeline { filter: invert(1) hue-rotate(180deg); }
+        
+        .theme-horror audio::-webkit-media-controls-panel { background-color: #1a0a00; }
+        .theme-horror audio::-webkit-media-controls-current-time-display,
+        .theme-horror audio::-webkit-media-controls-time-remaining-display { color: #ff4500 !important; }
+        .theme-horror audio::-webkit-media-controls-play-button, 
+        .theme-horror audio::-webkit-media-controls-timeline { filter: invert(60%) sepia(100%) saturate(3000%) hue-rotate(10deg); }
+    </style>
+</head>
+
+<body class="theme-dark font-cyber" id="bodyTag">
+
+    <div class="header-nav">
+        <div class="main-switcher" onclick="toggleTheme()" id="btnSwitch" style="color: #00f0ff;">
+            <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-6 pt-24">
+        <div class="box-container">
+            <h1 class="text-xl font-black text-glow mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-music"></i> RevinzaMusic
+            </h1>
+
+            <input id="query" class="input-field" placeholder="Judul lagu / Link YT..." onkeypress="if(event.key === 'Enter') play()">
+
+            <button id="btnSearch" onclick="play()" class="btn-primary mb-2 w-full flex items-center justify-center gap-2">
+                <span>SEARCH & PLAY</span>
+            </button>
+
+            <div id="statusContainer" class="flex items-center justify-center gap-2 h-6 mb-2 hidden">
+                <span class="loader"></span>
+                <p id="loading" class="text-[10px] uppercase tracking-widest"></p>
+            </div>
+
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        if ("Notification" in window) { Notification.requestPermission(); }
+
+        const themes = [
+            { name: 'dark', icon: 'fa-moon', color: '#00f0ff' },
+            { name: 'light', icon: 'fa-sun', color: '#0f172a' },
+            { name: 'rainy', icon: 'fa-cloud-showers-heavy', color: '#0ea5e9' },
+            { name: 'horror', icon: 'fa-ghost', color: '#ea580c' }
+        ];
+
+        let currentIdx = 0;
+
+        function toggleTheme() {
+            currentIdx = (currentIdx + 1) % themes.length;
+            const t = themes[currentIdx];
+            document.getElementById('bodyTag').className = 'theme-' + t.name;
+            document.getElementById('themeIcon').className = 'fa-solid ' + t.icon;
+            document.getElementById('btnSwitch').style.color = t.color;
+        }
+
+        function notifyHP(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/2402/2402461.png' });
+            }
+            if (navigator.vibrate) { navigator.vibrate(100); }
+        }
+
+        async function forceDownload(fileUrl, fileName) {
+            const loading = document.getElementById('loading');
+            const statusContainer = document.getElementById('statusContainer');
+            statusContainer.classList.remove('hidden');
+            loading.innerText = "MENYIAPKAN FILE...";
+            
+            try {
+                const response = await fetch(fileUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName + ".mp3";
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                loading.innerText = "BERHASIL DIUNDUH!";
+            } catch (e) {
+                window.open(fileUrl, '_blank');
+                loading.innerText = "SILAKAN SIMPAN MANUAL";
+            }
+            setTimeout(() => statusContainer.classList.add('hidden'), 3000);
+        }
+
+        async function play() {
+            const q = document.getElementById('query').value;
+            if (!q) return alert("Isi judul dulu!");
+
+            const result = document.getElementById('result');
+            const loading = document.getElementById('loading');
+            const statusContainer = document.getElementById('statusContainer');
+            const btnSearch = document.getElementById('btnSearch');
+
+            result.innerHTML = "";
+            statusContainer.classList.remove('hidden');
+            btnSearch.disabled = true;
+            btnSearch.style.opacity = "0.5";
+
+            const messages = ["Mencari Data...", "Mengambil Audio...", "Mengonversi File...", "Hampir Siap..."];
+            let msgIdx = 0;
+            const interval = setInterval(() => {
+                loading.innerText = messages[msgIdx % messages.length];
+                msgIdx++;
+            }, 2000);
+            loading.innerText = messages[0];
+
+            try {
+                const res = await fetch('/api/play?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                
+                clearInterval(interval);
+                statusContainer.classList.add('hidden');
+                btnSearch.disabled = false;
+                btnSearch.style.opacity = "1";
+
+                if (!data.status) return alert("Lagu tidak ditemukan atau server sibuk");
+
+                result.innerHTML = `
+                    <div class="animate-in fade-in duration-500">
+                        <img src="${data.cover}" class="img-cover shadow-lg border-neon">
+                        <h2 class="text-sm font-bold leading-tight mb-1 uppercase tracking-tighter">${data.title}</h2>
+                        <p class="duration-text text-[10px] mb-4 font-bold tracking-widest" style="opacity: 0.9;">${data.duration}</p>
+                        <audio id="audio" controls autoplay>
+                            <source src="${data.download}" type="audio/mpeg">
+                        </audio>
+                        <div class="flex gap-2 mt-5">
+                            <button onclick="forceDownload('${data.download}', '${data.title}')" class="flex-1 btn-primary text-[11px] py-3">
+                                <i class="fa-solid fa-download mr-1"></i> Simpan
+                            </button>
+                            <button onclick="location.reload()" class="flex-1 border border-current text-[11px] py-3 rounded-xl font-black uppercase">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                `;
+                notifyHP("RevinzaMusic", "Memutar: " + data.title);
+            } catch (e) {
+                clearInterval(interval);
+                statusContainer.classList.add('hidden');
+                btnSearch.disabled = false;
+                btnSearch.style.opacity = "1";
+                alert("Server Error.");
+            }
+        }
+    </script>
+</body>
+</html>

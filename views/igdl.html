@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body { transition: background 0.6s ease, color 0.6s ease; font-family: 'Orbitron', sans-serif; min-height: 100vh; margin: 0; }
+        .theme-dark { background: #020617; color: white; }
+        .theme-dark .box { background: #0f172a; border: 1px solid #00f0ff; box-shadow: 0 0 20px rgba(0,240,255,.2); }
+        .theme-dark .glow { text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff; }
+        .theme-dark .input { background: black; border: 1px solid #00f0ff; color: white; }
+        .theme-dark .btn { background: #00f0ff; color: black; }
+        
+        
+        .theme-light { background: #f8fafc; color: #1e293b; }
+        .theme-light .box { background: white; border: 1px solid #cbd5e1; }
+        .theme-rainy { background: #1e293b; color: #cbd5e1; }
+        .theme-rainy .box { background: rgba(255,255,255,0.05); border: 1px solid #64748b; backdrop-filter: blur(8px); }
+        .theme-horror { background: #000000; color: #ea580c; }
+        .theme-horror .box { background: #111; border: 1px solid #ea580c; }
+
+        .theme-switcher-container { position: absolute; top: 20px; right: 20px; z-index: 100; }
+        .main-switcher { width: 45px; height: 45px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .box { transition: all 0.5s ease; }
+        .btn { font-weight: bold; transition: .3s; cursor: pointer; }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .media { width: 100%; border-radius: 15px; border: 1px solid currentColor; margin-top: 15px; }
+    </style>
+</head>
+
+<body class="theme-dark" id="bodyTag">
+
+    <div class="theme-switcher-container">
+        <div class="main-switcher" onclick="toggleTheme()" id="btnSwitch" style="color: #00f0ff;">
+            <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+        </div>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-5">
+        <div class="w-full max-w-xl box rounded-3xl p-8">
+            <h1 class="text-2xl md:text-3xl font-bold glow mb-6 uppercase tracking-tight">
+                📥 IG Downloader
+            </h1>
+
+            <input id="url" type="text" placeholder="Paste link Instagram..." class="w-full p-4 rounded-xl input outline-none mb-4" />
+
+            <button onclick="go()" class="w-full p-4 rounded-xl btn">
+                SEARCH DATA
+            </button>
+
+            <p id="loading" class="mt-3 opacity-60 text-sm text-center h-5 uppercase"></p>
+            <div id="result" class="mt-5"></div>
+        </div>
+    </div>
+
+    <script>
+        
+        if ("Notification" in window) { Notification.requestPermission(); }
+
+        const themes = [
+            { name: 'dark', icon: 'fa-moon', color: '#00f0ff' },
+            { name: 'light', icon: 'fa-sun', color: '#0f172a' },
+            { name: 'rainy', icon: 'fa-cloud-showers-heavy', color: '#0ea5e9' },
+            { name: 'horror', icon: 'fa-ghost', color: '#ea580c' }
+        ];
+
+        let currentIdx = 0;
+
+        function toggleTheme() {
+            currentIdx = (currentIdx + 1) % themes.length;
+            const theme = themes[currentIdx];
+            document.getElementById('bodyTag').className = 'theme-' + theme.name;
+            document.getElementById('themeIcon').className = `fa-solid ${theme.icon} text-lg`;
+            document.getElementById('btnSwitch').style.color = theme.color;
+        }
+
+        
+        function notifyHP(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' });
+            }
+            if (navigator.vibrate) { navigator.vibrate(100); }
+        }
+
+        
+        async function forceDownload(fileUrl, fileName) {
+            const loading = document.getElementById('loading');
+            loading.innerText = 'Downloading to gallery...';
+            notifyHP("IG Downloader", "Proses mengunduh file...");
+
+            try {
+                const response = await fetch(fileUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                loading.innerText = 'Download Success!';
+                notifyHP("Sukses!", "Media berhasil disimpan.");
+            } catch (e) {
+                window.open(fileUrl, '_blank');
+                loading.innerText = 'Opening in new tab...';
+            }
+            setTimeout(() => loading.innerText = '', 3000);
+        }
+
+        async function go() {
+            const url = document.getElementById('url').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            if (!url) return alert('Masukkan link Instagram!');
+
+            loading.innerText = 'FETCHING DATA...';
+            result.innerHTML = '';
+
+            try {
+                const res = await fetch('/api/igdl?url=' + encodeURIComponent(url));
+                const data = await res.json();
+                loading.innerText = '';
+
+                if (!data.status) {
+                    result.innerHTML = '<div class="text-red-400 text-center font-bold">❌ MEDIA TIDAK DITEMUKAN</div>';
+                    return;
+                }
+
+                const stamp = Date.now();
+                const mediaUrl = `/media?url=${encodeURIComponent(data.url)}`;
+                
+                let html = "";
+                if (data.type === 'video') {
+                    html = `<video controls class="media shadow-lg"><source src="${mediaUrl}"></video>`;
+                    html += `<button onclick="forceDownload('${mediaUrl}', 'IG_Revinza_${stamp}.mp4')" class="w-full mt-4 btn p-4 rounded-xl text-center uppercase">⬇ Download Video</button>`;
+                } else {
+                    html = `<img src="${mediaUrl}" class="media shadow-lg">`;
+                    html += `<button onclick="forceDownload('${mediaUrl}', 'IG_Revinza_${stamp}.jpg')" class="w-full mt-4 btn p-4 rounded-xl text-center uppercase">⬇ Download Image</button>`;
+                }
+                
+                result.innerHTML = html;
+                notifyHP("IG Downloader", "Data berhasil ditemukan!");
+
+            } catch (e) {
+                loading.innerText = '';
+                result.innerHTML = '<div class="text-red-400 text-center font-bold">❌ CONNECTION ERROR</div>';
+            }
+        }
+    </script>
+</body>
+</html>
